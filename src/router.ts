@@ -10,3 +10,4 @@ router.get('/:id', usuarioController.selecionarUsuario);
 router.post('/', usuarioController.adicionarUsuario);
 router.put('/:id', usuarioController.atualizarUsuario);
 router.delete('/:id', usuarioController.deletarUsuario);
+router.patch('/:id', usuarioController.atualizarSenha);

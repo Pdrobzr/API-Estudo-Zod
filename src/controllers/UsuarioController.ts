@@ -1,8 +1,9 @@
 import { Request, Response } from "express";
 import { prisma } from "../prisma";
-import { hash } from "bcrypt";
+import { compare, hash } from "bcrypt";
 import { userRegistrationSchema } from "../schemas/userRegistrationSchema";
 import { userUpdateSchema } from "../schemas/userUpdateSchema";
+import { passwordUpdateSchema } from "../schemas/passwordUpdateSchema";
 
 
 export class UsuarioController {
@@ -103,6 +104,51 @@ export class UsuarioController {
             });
 
             return res.status(200).json({message: 'Usuário deletado com sucesso!'});
+        } catch (error) {
+            return res.status(400).json();
+        }
+    }
+
+    async atualizarSenha(req: Request, res: Response) {
+        try {
+            const id = req.params.id;
+            const usuario = passwordUpdateSchema.parse(req.body);
+
+            if(!usuario.senha) {
+                return res.status(400).json({message: 'Senha inválida!'});
+            }
+
+            const buscarUsuario = await prisma.usuario.findUnique({
+                select : {
+                    senha: true
+                },
+                where: {
+                    id
+                }
+            });
+
+            if(!buscarUsuario) {
+                return res.status(400).json({message: 'Usuário não encontrado!'});
+            }
+
+            if(!await compare(usuario.senhaAntiga, buscarUsuario.senha)) {
+                return res.status(400).json({message: 'Erro! as senhas precisam ser iguais!'});
+            }
+
+            const senhaHash = await hash(usuario.senha, 10);
+
+            await prisma.usuario.update({
+                data: {
+                    senha: senhaHash
+                },
+                where: {
+                    id
+                }
+            });
+
+            return res.status(200).json({message: 'Senha atualizada com sucesso!'});
+
+
         } catch (error) {
             return res.status(400).json();
         }
