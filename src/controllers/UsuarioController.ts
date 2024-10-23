@@ -24,13 +24,13 @@ export class UsuarioController {
                 }
             });
 
-            return res.status(200).json({
+            return res.status(201).json({
                 message: "Usuário adicionado com sucesso!"
             });
         } catch (error) {
             
             return res.status(400).json({
-                message: "Validation error",
+                message: "Erro de validação!",
 
             });
         }
@@ -57,6 +57,11 @@ export class UsuarioController {
             const id = req.params.id;
 
             const selecionarUsuario = await prisma.usuario.findUnique({
+                select: {
+                    id: true,
+                    nome: true,
+                    email: true
+                },
                 where: {
                     id
                 }
@@ -113,10 +118,6 @@ export class UsuarioController {
         try {
             const id = req.params.id;
             const usuario = passwordUpdateSchema.parse(req.body);
-
-            if(!usuario.senha) {
-                return res.status(400).json({message: 'Senha inválida!'});
-            }
 
             const buscarUsuario = await prisma.usuario.findUnique({
                 select : {
