@@ -4,6 +4,8 @@ import { compare, hash } from "bcrypt";
 import { userRegistrationSchema } from "../schemas/userRegistrationSchema";
 import { userUpdateSchema } from "../schemas/userUpdateSchema";
 import { passwordUpdateSchema } from "../schemas/passwordUpdateSchema";
+import { ZodError } from "zod";
+import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
 
 
 export class UsuarioController {
@@ -29,10 +31,13 @@ export class UsuarioController {
             });
         } catch (error) {
             
-            return res.status(400).json({
-                message: "Erro de validação!",
-
-            });
+            if(error instanceof ZodError) {
+                return res.status(400).json({message: 'Erro de validação!'});
+            } else if(error instanceof PrismaClientKnownRequestError) {
+                return res.status(400).json({message: 'Erro ao criar usuário!'});
+            } else {
+                return res.status(500).json({message: 'Erro interno do servidor.'});
+            }
         }
 
     }
@@ -48,7 +53,7 @@ export class UsuarioController {
             });
             return res.status(200).json(listarUsuarios);
         } catch (error) {
-            return res.status(400).json();
+            return res.status(500).json();
         }
     }
 
@@ -68,12 +73,12 @@ export class UsuarioController {
             });
 
             if(!selecionarUsuario) {
-                return res.status(400).json();
+                return res.status(400).json({message: 'Erro! Usuário não encontrado!'});
             }
 
             return res.status(200).json(selecionarUsuario);
         } catch (error) {
-            return res.status(400).json();
+            return res.status(500).json();
         }
     }
 
@@ -94,7 +99,13 @@ export class UsuarioController {
 
             return res.status(200).json(atualizarUsuario);
         } catch (error) {
-            return res.status(400).json();
+            if(error instanceof ZodError) {
+                return res.status(400).json({message: 'Erro de validação!'});
+            } else if(error instanceof PrismaClientKnownRequestError) {
+                return res.status(400).json({message: 'Erro ao atualizar o usuário!'});
+            } else {
+                return res.status(500).json();
+            }
         }
     }
     
@@ -110,7 +121,11 @@ export class UsuarioController {
 
             return res.status(200).json({message: 'Usuário deletado com sucesso!'});
         } catch (error) {
-            return res.status(400).json();
+            if(error instanceof PrismaClientKnownRequestError) {
+                return res.status(400).json({message: 'Erro ao encontrar o usuário!'});
+            } else {
+                return res.status(500).json();
+            }
         }
     }
 
@@ -151,7 +166,13 @@ export class UsuarioController {
 
 
         } catch (error) {
-            return res.status(400).json();
+            if(error instanceof ZodError) {
+                return res.status(400).json({message: 'Erro de validação!'});
+            } else if(error instanceof PrismaClientKnownRequestError) {
+                return res.status(400).json({message: 'Erro ao alterar senha!'});
+            } else {
+                return res.status(500).json();
+            }
         }
     }
 }
